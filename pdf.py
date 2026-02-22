@@ -1,78 +1,86 @@
-from dotenv import load_dotenv #retrive api values from dotenv file
-import streamlit as st # provide the GUI for user 
-from PyPDF2 import PdfReader  # used to read and extract text from PDF
+from dotenv import load_dotenv 
+from PyPDF2 import PdfReader  
 from langchain_text_splitters import CharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings #embedding chunks using openai embedders
-from langchain_community.vectorstores import FAISS # it is a vector database that we use to perform semantic searchs
+from langchain_openai import OpenAIEmbeddings 
+from langchain_community.vectorstores import FAISS 
 from langchain_classic.chains.question_answering import load_qa_chain
 from langchain_classic.llms import OpenAI
-from langchain_classic.callbacks import get_openai_callback # used for calculating cost of usage
+from langchain_classic.callbacks import get_openai_callback 
 def main():
 
-    # loading the api key value from dotenv file 
     load_dotenv()
 
-    #setting the page name on streamlit
-    st.set_page_config(page_title="PDF Reader")
+    
+    pdf = "./Marketing"
 
-    #Dislay the header 
-    st.header("Upload your pdf  to Ask questions")
+    def load_pdf(pdf):
+	pass
+		
+	def extract_text(documents):
+	    text=""
+		for page in pdf.pages:
+			text+=page.extract_texts(page)
+		return text
 
-    #file_uploader will take pdf file -> (type="pdf") and storing into pdf variable
-    pdf = st.file_uploader("Drag and drop" ,type="pdf")
+    extracted_text= extract_text(pdf)
+	def chunking(text:str):
+		chunks= CharacterTextSplitters(separator=["\n","\n\n"] offset=50)
+		docs=chunks.split_documents()
+		return docs
 
-    #checking if pdf exist or not
+    chunked_documents =chunking(extracted_text)
+
+	def embed(chunked_documents):
+		embedding_model = HuggingFaceInstructorEmbedding("instructor-lx")
+        for doc in chunked_documents:
+			embed=embedding_model.embed(doc)
+			vector_indexing(embed)
+			
+    def vector_store:
+        pass
+    def vector_indexing
+        pass
+    def search_vector:
+        pass
+
     if pdf is not None:
-        #reading the pdf 
+      
         pdf_reader = PdfReader(pdf)
-       # number_of_pages = len(pdf_reader)
-        #declaring the variable to store extracted text 
+       
         text=""
     
-        #Extracting the text from pdf pages one by one with loops
+        
         for page in pdf_reader.pages:
     
-            #concating the extracted text from page
             text+=page.extract_text()
-        
-            #showing the text on screen
             st.write(text)
             print(text)
 
-		    #With in the for loop we also chunk the text into multiple clusters
-		    # first initialize/create an object of CharacterTextSpilitter
+		    
             text_splitter= CharacterTextSplitter(separator="/n",chunk_size=1000,chunk_overlap=200,length_function=len)
-		    #Now splitting the text
+		    
             chunks=text_splitter.split_text(text)
-		    #displayong the chunks
-            st.write("chunks are belows:")
-            st.write(chunks)
-            #Now it's time for Embedding the chunks using OpenAIEmbeddings
-		    #first, Create an initialize/Object of OpenAIEmbeddings
+		    
+      
             
             embeddings= OpenAIEmbeddings()
-		    #Create a Vector Database (FAISS) and storing Vector Value in it.
+		    
             knowledge_base= FAISS.from_texts(chunks,embeddings) #chunks is the data we want to embed and embeddings is the  embeddings providers.
 		
-        #-----Creating a User Interface----
-            user_input = st.text_input("Ask a Questions: ")
-		#check either user ask a question or not
+        
+            user_input = input("Ask a Questions: ")
+
             if user_input:
-		    # searching the asked question on the knowledge_base/vector Database
+		
                 docs_search= knowledge_base.similarity_search(user_input)
-             # revelant Answer to questions
-			# initialize LLM (OpenAI)
                 llm= OpenAI()
-                chain= load_qa_chain(llm,chain_type="stuff")
-			#responding to question 
-                with get_openai_callback as cb: #<-- it is the funvtion that is used to calculate the cost per questions
+                chain= load_qa_chain(llm,chain_type="
+                with get_openai_callback as cb: 
                     responde = chain.run(input_documents=docs_search,question=user_input)
                     print(cb)
                     st.write("The Answer")
                     st.write(response)
-			
-	
-# checking the program are being executed directly and not as modules 
+			 
 
 if __name__ == "__main__":
     main()
